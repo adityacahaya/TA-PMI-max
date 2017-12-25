@@ -1,0 +1,39 @@
+import MySQLdb
+import numpy
+
+# konek ke db
+db = MySQLdb.connect(host="localhost",port=3306,user="root",passwd="",db = "tugasakhir")
+cursor = db.cursor()
+
+# cara insert data ke db
+#cursor.execute("INSERT INTO kata (kata, sense) VALUES ('kadekA', 1)")
+#db.commit()
+
+# cara select data ke db
+#cursor.execute("SELECT * FROM kata")
+#results = cursor.fetchall()
+#for row in results:
+#    print(row)
+
+# baca file corpus
+fileCorpus = open("katates.txt", "r") 
+# insert kata-kata corpus ke dalam list
+stringList = fileCorpus.read().strip().split(" ")
+# hilangkan null/"" dari list
+stringList = list(filter(("").__ne__, stringList))
+# hilangkan kata-kata yang sama dari list
+stringList = list(set(stringList))
+# sort kata-kata list berdasarkan abjad
+stringList.sort()
+
+# print list kata unik
+print("List Kata Corpus Unik : ")
+print(stringList)
+print("\n") 
+# print jumlah kata unik
+totalKataUnik = len(stringList)
+print("Jumlah Kata Unik : ",totalKataUnik)
+print("\n")
+
+matrix = numpy.zeros((5, 5))
+print(matrix)
