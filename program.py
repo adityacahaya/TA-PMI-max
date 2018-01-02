@@ -1,5 +1,6 @@
 import MySQLdb
 import numpy
+import math
 numpy.set_printoptions(threshold=numpy.nan)
 
 # konek ke db
@@ -45,6 +46,46 @@ def cariKata(stringList, toMatch, windowSize):
                 result = sb
     return result
 
+def termFreq(stringList,cari):
+    result = 0
+    for x in range(len(stringList)):
+        if(stringList[x] == cari):
+            result = result + 1
+    return result
+
+def hitungPMIMax(stringList, matrixAkhir, totalKataUnik, kata1, kata2):
+    result = 0
+    
+    fdW1W2 = 0
+    ek = 10
+    yw1 = 0
+    yw2 = 0
+    p = 7.5
+    q = 10
+    n = len(stringList)
+    fw1 = termFreq(stringList,kata1)
+    fw2 = termFreq(stringList,kata2)
+    
+    print("kata 1 : ",kata1)
+    print("kata 2 : ",kata2)
+    
+    for i in range(1,totalKataUnik+1):
+        if(kata1 == matrixAkhir[i][0]):
+            for j in range(1,totalKataUnik+1):
+                if(kata2 == matrixAkhir[0][j]):
+                    fdW1W2 = matrixAkhir[i][j]
+                    print("Coocurence : ",fdW1W2)
+                    yw1 = (math.pow((math.log(fw1))+q,p))/(math.pow((math.log(700))+q,p))
+                    yw2 = (math.pow((math.log(fw2))+q,p))/(math.pow((math.log(700))+q,p))
+                    result = math.log(((fdW1W2-((ek/n)*(fw1*fw2-(fw1/yw1)*(fw2/yw2))))*n)/((fw1/yw1)*(fw2/yw2)))
+                    print("yw1 : ",yw1)
+                    print("yw2 : ",yw2)
+                    print("Nilai PMIMax : ",result)
+                    print("n : ",n)
+                    print("fw1 : ",fw1)
+                    print("fw2 : ",fw2)
+    return
+
 # main program
 def main():
     
@@ -64,13 +105,26 @@ def main():
     totalKataUnik = len(stringListMatrix)
     s = (totalKataUnik + 2, totalKataUnik + 2)
     
+    # membuat inisialisasi matrix
     matrixAkhir = numpy.zeros(s, dtype = object)
     for x in range(totalKataUnik) :
         matrixAkhir[0][x+1] = stringListMatrix[x]
         matrixAkhir[x+1][0] = stringListMatrix[x]
     numpy.savetxt('matrixAkhir.csv', matrixAkhir, delimiter=',', fmt='%s')
     
-    z = 0
+    # hitung bobot
+    windowSize = 1
+    for x in range(totalKataUnik):
+        context1 = cariKata(stringList,stringListMatrix[x],windowSize)
+        for y in range(totalKataUnik):
+            bobot = 0
+            for k in range(len(context1)):
+                if(stringListMatrix[y] == context1[k]):
+                    bobot = bobot + 1
+                    matrixAkhir[x+1][y+1] = bobot
+    numpy.savetxt('matrixAkhir.csv', matrixAkhir, delimiter=',', fmt='%s')
+    
+    hitungPMIMax(stringList, matrixAkhir, totalKataUnik, "at", "at")
     
     return
 
