@@ -1,11 +1,12 @@
 import MySQLdb
 import numpy
 import math
+import sys
 numpy.set_printoptions(threshold=numpy.nan)
 
 # konek ke db
-db = MySQLdb.connect(host="localhost",port=3306,user="root",passwd="",db = "tugasakhir")
-cursor = db.cursor()
+#db = MySQLdb.connect(host="localhost",port=3306,user="root",passwd="",db = "tugasakhir")
+#cursor = db.cursor()
 
 # cara insert data ke db
 #cursor.execute("INSERT INTO kata (kata, sense) VALUES ('kadekA', 1)")
@@ -21,28 +22,66 @@ cursor = db.cursor()
 def cariKata(stringList, toMatch, windowSize):
     before = windowSize
     after = windowSize
+    result = []
     
     sb = []
     for x in range(len(stringList)) :
         if (toMatch == stringList[x]) :
             index = x
-            if ((0 <= index - before) and (index + after <= len(stringList))) :
-                y = index - before
-                while y < index + after :
-                    sb.append(stringList[y])
-                    y = y + 1
+            if (index == 0) :
+                titik = index
+                titikKanan = index + after
+                while titik <= titikKanan :
+                    sb.append(stringList[titik])
+                    titik = titik + 1
                 result = sb
-            elif (0 > index - before) :
-                y = 0
-                while y < index + after :
-                    sb.append(stringList[y])
-                    y = y + 1
-                result = sb        
-            elif (index + after >= len(stringList)) :
-                y = 0
-                while y < index + after :
-                    sb.append(stringList[y])
-                    y = y + 1
+                
+            elif (index == len(stringList)-1) :
+                titik = index
+                titikKiri = index - before
+                while titik >= titikKiri :
+                    sb.append(stringList[titikKiri])
+                    titikKiri = titikKiri + 1
+                result = sb
+                
+            elif (index > 0) and (index < len(stringList)-1) :
+                titik = index
+                titikKiri = index - before
+                titikKanan = index + before
+                
+                if(titikKiri >= 0):
+                    while titikKiri <= titik:
+                        sb.append(stringList[titikKiri])
+                        titikKiri = titikKiri + 1
+                    if(titikKanan <= len(stringList)-1):
+                        titik = titik + 1
+                        while titikKanan >= titik:
+                            sb.append(stringList[titik])
+                            titik = titik + 1
+                    elif(titikKanan > len(stringList)-1):
+                        titik = titik + 1
+                        titikKanan = len(stringList)-1
+                        while titikKanan >= titik:
+                            sb.append(stringList[titik])
+                            titik = titik + 1
+                            
+                if(titikKiri < 0):
+                    titikKiri = 0
+                    while titikKiri <= titik:
+                        sb.append(stringList[titikKiri])
+                        titikKiri = titikKiri + 1
+                    if(titikKanan <= len(stringList)-1):
+                        titik = titik + 1
+                        while titikKanan >= titik:
+                            sb.append(stringList[titik])
+                            titik = titik + 1
+                    elif(titikKanan > len(stringList)-1):
+                        titik = titik + 1
+                        titikKanan = len(stringList)-1
+                        while titikKanan >= titik:
+                            sb.append(stringList[titik])
+                            titik = titik + 1
+                
                 result = sb
     return result
 
@@ -89,23 +128,21 @@ def hitungPMIMax(stringList, matrixAkhir, totalKataUnik, kata1, kata2):
 # main program
 def main():
     
-    # baca file corpus
-    fileCorpus = open("katates.txt", "r") 
-    # insert kata-kata corpus ke dalam list
+    # baca file corpus hasil preprocessing
+    print("1. Baca Corpus Hasil Preprocessing")
+    fileCorpus = open("hasilPreprocessing.txt", "r") 
     stringList = fileCorpus.read().strip().split(" ")
-    # hilangkan null/"" dari list
     stringList = list(filter(("").__ne__, stringList))
     
-    # hilangkan kata-kata yang sama dari list
+    # membuat list kata untuk matrix bobot dari file corpus hasil preprocessing
+    print("2. Membuat List Kata Marix dari Corpus")
     stringListMatrix = list(set(stringList))
-    # sort kata-kata list berdasarkan abjad
     stringListMatrix.sort()
-    
-    # print jumlah kata unik
     totalKataUnik = len(stringListMatrix)
     s = (totalKataUnik + 2, totalKataUnik + 2)
     
     # membuat inisialisasi matrix
+    print("3. Inisialisasi Pembentukan Matrix")
     matrixAkhir = numpy.zeros(s, dtype = object)
     for x in range(totalKataUnik) :
         matrixAkhir[0][x+1] = stringListMatrix[x]
@@ -113,7 +150,8 @@ def main():
     numpy.savetxt('matrixAkhir.csv', matrixAkhir, delimiter=',', fmt='%s')
     
     # hitung bobot
-    windowSize = 1
+    print("4. Proses Penghitungan Bobot")
+    windowSize = 3
     for x in range(totalKataUnik):
         context1 = cariKata(stringList,stringListMatrix[x],windowSize)
         for y in range(totalKataUnik):
@@ -122,9 +160,16 @@ def main():
                 if(stringListMatrix[y] == context1[k]):
                     bobot = bobot + 1
                     matrixAkhir[x+1][y+1] = bobot
+    
+    # simpan nilai bobot ke file matrixAjkhir
+    print("5. Simpan Hasil Penghitungan Bobot")
     numpy.savetxt('matrixAkhir.csv', matrixAkhir, delimiter=',', fmt='%s')
     
-    hitungPMIMax(stringList, matrixAkhir, totalKataUnik, "at", "at")
+    print("6. Contoh Penghitungan PMI")
+    kata1 = input("kata 1 : ")
+    kata2 = input("kata 2 : ")
+    print("")
+    hitungPMIMax(stringList, matrixAkhir, totalKataUnik, kata1, kata2)
     
     return
 
