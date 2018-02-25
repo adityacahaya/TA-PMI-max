@@ -1,0 +1,2 @@
+bahasa,sunting,5
+sebar,salin,9

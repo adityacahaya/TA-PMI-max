@@ -1,0 +1,2 @@
+wikipedia,wikipedia,9.4
+bebas,artikel,9.5

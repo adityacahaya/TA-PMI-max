@@ -3,7 +3,9 @@ import numpy
 import math
 import sys
 numpy.set_printoptions(threshold=numpy.nan)
+from scipy.stats.stats import pearsonr
 
+   
 # konek ke db
 #db = MySQLdb.connect(host="localhost",port=3306,user="root",passwd="",db = "tugasakhir")
 #cursor = db.cursor()
@@ -105,25 +107,25 @@ def hitungPMIMax(stringList, matrixAkhir, totalKataUnik, kata1, kata2):
     fw1 = termFreq(stringList,kata1)
     fw2 = termFreq(stringList,kata2)
     
-    print("kata 1 : ",kata1)
-    print("kata 2 : ",kata2)
+    #print("kata 1 : ",kata1)
+    #print("kata 2 : ",kata2)
     
     for i in range(1,totalKataUnik+1):
         if(kata1 == matrixAkhir[i][0]):
             for j in range(1,totalKataUnik+1):
                 if(kata2 == matrixAkhir[0][j]):
                     fdW1W2 = matrixAkhir[i][j]
-                    print("Coocurence : ",fdW1W2)
+                    #print("Coocurence : ",fdW1W2)
                     yw1 = (math.pow((math.log(fw1))+q,p))/(math.pow((math.log(700))+q,p))
                     yw2 = (math.pow((math.log(fw2))+q,p))/(math.pow((math.log(700))+q,p))
                     result = math.log(((fdW1W2-((ek/n)*(fw1*fw2-(fw1/yw1)*(fw2/yw2))))*n)/((fw1/yw1)*(fw2/yw2)))
-                    print("yw1 : ",yw1)
-                    print("yw2 : ",yw2)
-                    print("Nilai PMIMax : ",result)
-                    print("n : ",n)
-                    print("fw1 : ",fw1)
-                    print("fw2 : ",fw2)
-    return
+                    #print("yw1 : ",yw1)
+                    #print("yw2 : ",yw2)
+                    #print("Nilai PMIMax : ",result)
+                    #print("n : ",n)
+                    #print("fw1 : ",fw1)
+                    #print("fw2 : ",fw2)
+    return result
 
 # main program
 def main():
@@ -165,11 +167,35 @@ def main():
     print("5. Simpan Hasil Penghitungan Bobot")
     numpy.savetxt('matrixAkhir.csv', matrixAkhir, delimiter=',', fmt='%s')
     
-    print("6. Contoh Penghitungan PMI")
-    kata1 = input("kata 1 : ")
-    kata2 = input("kata 2 : ")
-    print("")
-    hitungPMIMax(stringList, matrixAkhir, totalKataUnik, kata1, kata2)
+    fileHasilKorelasi = open("hasilKorelasi.txt", "w")
+    
+    for x in range(3):
+        x = x + 1
+        print("+. Baca Gold Standar ",x)
+        goldstandartext = "goldstandar",str(x),".txt"
+        fileGoldStandar1 = open(''.join(goldstandartext), "r") 
+        listGoldStandar1 = fileGoldStandar1.read().strip().split("\n")
+        
+        print("+. Cari dan Simpan Nilai PMI Max dari Corpus yang ada di Gold Standar ",x)
+        arrayNilaiGoldStandar = []
+        arrayNilaiPMIMax = []
+        goldstandartext = "hasilPMIGoldStandar",str(x),".csv"
+        hasilPMIGoldStandar1 = open(''.join(goldstandartext), "w")
+        for i in range(len(listGoldStandar1)):
+            listKataGoldStandar = listGoldStandar1[i].split(",")
+            nilaiPMIMax = hitungPMIMax(stringList, matrixAkhir, totalKataUnik, listKataGoldStandar[0], listKataGoldStandar[1])
+            arrayNilaiGoldStandar.append(float(listKataGoldStandar[2]))
+            arrayNilaiPMIMax.append(nilaiPMIMax)
+            kataDanPMI = listKataGoldStandar[0],",",listKataGoldStandar[1],",",str(nilaiPMIMax),"\n"
+            hasilPMIGoldStandar1.write(''.join(kataDanPMI))
+        hasilPMIGoldStandar1.close()
+        
+        print("+. Hitung dan Simpan Nilai Korelasi Dari Gold Standar ",x)
+        nilaiKorelasi = pearsonr(arrayNilaiGoldStandar,arrayNilaiGoldStandar)[0] 
+        kataDanKorelasi = "nilai korelasi korpus dengan gold standar ",str(x)," : ",str(nilaiKorelasi),"\n"
+        fileHasilKorelasi.write(''.join(kataDanKorelasi))
+    
+    fileHasilKorelasi.close()
     
     return
 
